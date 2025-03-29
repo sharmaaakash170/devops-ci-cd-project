@@ -36,13 +36,21 @@ pipeline {
             }
         }
 
-        stage('Deploy Container'){
+        // stage('Deploy Container'){
+        //     steps{
+        //         sh '''
+        //         docker stop flask-container || true
+        //         docker rm flask-container || true
+        //         docker run -d --name flask-container -p 5000:5000 $IMAGE_NAME:latest
+        //         '''
+        //     }
+        // }
+
+        stage('Deploy to Kubernetes') {
             steps{
-                sh '''
-                docker stop flask-container || true
-                docker rm flask-container || true
-                docker run -d --name flask-container -p 5000:5000 $IMAGE_NAME:latest
-                '''
+                withKubeConfig([credentialsId: 'kubeconfig-id']) {
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                    sh 'kubectl apply -f k8s/service.yaml'
             }
         }
     }
