@@ -5,16 +5,16 @@ pipeline {
         IMAGE_NAME = "sharmaaakash170/flask-app"
     }
 
-    stages{
+    stages {
         stage('Clone Repo') {
-            steps{
+            steps {
                 git branch: 'main', url: 'https://github.com/sharmaaakash170/devops-ci-cd-project.git'
             }
         }
 
         stage('Build Docker Image') {
-            steps{
-            sh 'docker build -t $IMAGE_NAME .'
+            steps {
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
@@ -26,25 +26,14 @@ pipeline {
             }
         }
 
-
-        stage('Push to Docker Hub'){
-            steps{
+        stage('Push to Docker Hub') {
+            steps {
                 sh '''
                 docker tag $IMAGE_NAME $IMAGE_NAME:latest
                 docker push $IMAGE_NAME:latest
                 '''
             }
         }
-
-        // stage('Deploy Container'){
-        //     steps{
-        //         sh '''
-        //         docker stop flask-container || true
-        //         docker rm flask-container || true
-        //         docker run -d --name flask-container -p 5000:5000 $IMAGE_NAME:latest
-        //         '''
-        //     }
-        // }
 
         stage('Deploy to Kubernetes') {
             steps {
