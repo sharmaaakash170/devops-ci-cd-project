@@ -49,8 +49,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig-id']) {
-                    sh 'kubectl apply -f k8s/deployment.yaml'
-                    sh 'kubectl apply -f k8s/service.yaml'
+                    sh 'kubectl apply -f flask-app-deployment.yml'
+                    sh 'kubectl apply -f flask-app-service.yml'
                 }
             }
         }
