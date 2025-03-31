@@ -41,10 +41,12 @@ pipeline {
 
         stage('Deploy to EKS') {
             steps {
-                sh '''
-                echo $KUBE_CONFIG > $HOME/.kube/config
-                kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest --namespace default
-                '''
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                    export KUBECONFIG=$KUBECONFIG
+                    kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest --namespace default
+                    '''
+                }
             }
         }
 
