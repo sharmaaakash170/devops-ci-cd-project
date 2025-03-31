@@ -44,7 +44,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
-                    kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest --namespace default
+                    kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
                     '''
                 }
             }
@@ -69,3 +69,5 @@ pipeline {
         // }
     }
 }
+
+
