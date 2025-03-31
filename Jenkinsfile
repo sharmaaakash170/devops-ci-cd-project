@@ -2,7 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "sharmaaakash170/flask-app"
+        IMAGE_NAME = 'flask-app'
+        AWS_REGION = 'us-east-1'
+        ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
+        KUBE_CONFIG = credentials('kubeconfig')  // Store kubeconfig in Jenkins credentials
     }
 
     stages {
@@ -18,30 +21,49 @@ pipeline {
             }
         }
 
-        stage('Login to Docker Hub') {
-            steps {
-                withCredentials([string(credentialsId: 'docker-hub-id', variable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u sharmaaakash170 --password-stdin'
-                }
-            }
-        }
-
-        stage('Push to Docker Hub') {
+        // stage('Login to Docker Hub') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'docker-hub-id', variable: 'DOCKER_PASS')]) {
+        //             sh 'echo $DOCKER_PASS | docker login -u sharmaaakash170 --password-stdin'
+        //         }
+        //     }
+        // }
+        
+        stage('Push to ECR') {
             steps {
                 sh '''
-                docker tag $IMAGE_NAME $IMAGE_NAME:latest
-                docker push $IMAGE_NAME:latest
+                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+                docker tag flask-app:latest $ECR_REPO:latest
+                docker push $ECR_REPO:latest
                 '''
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to EKS') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-id']) {
-                    sh 'kubectl apply -f flask-app-deployment.yml --validate=false'
-                    sh 'kubectl apply -f flask-app-service.yml --validate=false'
-                }
+                sh '''
+                echo $KUBE_CONFIG > $HOME/.kube/config
+                kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest --namespace default
+                '''
             }
         }
+
+        // stage('Push to Docker Hub') {
+        //     steps {
+        //         sh '''
+        //         docker tag $IMAGE_NAME $IMAGE_NAME:latest
+        //         docker push $IMAGE_NAME:latest
+        //         '''
+        //     }
+        // }
+
+        // stage('Deploy to Kubernetes') {
+        //     steps {
+        //         withKubeConfig([credentialsId: 'kubeconfig-id']) {
+        //             sh 'kubectl apply -f flask-app-deployment.yml --validate=false'
+        //             sh 'kubectl apply -f flask-app-service.yml --validate=false'
+        //         }
+        //     }
+        // }
     }
 }
