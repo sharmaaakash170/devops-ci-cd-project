@@ -45,6 +45,7 @@ pipeline {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
                     kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
+                    kubectl rollout restart deployment flask -n default
                     '''
                 }
             }
