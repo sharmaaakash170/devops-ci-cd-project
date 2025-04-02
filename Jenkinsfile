@@ -37,7 +37,7 @@ pipeline {
                     sh '''
                     echo "Updating kubeconfig..."
                     whoami
-                    sudo aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
+                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
                     echo "Verifying Kubernetes access..."
                     kubectl config current-context || { echo "Kubernetes authentication failed"; exit 1; }
                     kubectl get nodes || { echo "Failed to retrieve nodes"; exit 1; }
