@@ -5,6 +5,7 @@ pipeline {
         IMAGE_NAME = 'flask-app'
         AWS_REGION = 'us-east-1'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
+        KUBECONFIG = "/var/lib/jenkins/.kube/config"
     }
 
     stages {
@@ -36,8 +37,7 @@ pipeline {
                     sh '''
                     echo "Updating kubeconfig..."
                     whoami
-                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig /var/lib/jenkins/.kube/config
-
+                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
                     echo "Verifying Kubernetes access..."
                     kubectl config current-context || { echo "Kubernetes authentication failed"; exit 1; }
                     kubectl get nodes || { echo "Failed to retrieve nodes"; exit 1; }
