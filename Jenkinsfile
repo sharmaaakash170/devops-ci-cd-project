@@ -24,7 +24,7 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 sh '''
-                sudo aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
                 docker tag $IMAGE_NAME:latest $ECR_REPO:latest
                 docker push $ECR_REPO:latest
                 '''
@@ -37,7 +37,7 @@ pipeline {
                     sh '''
                     echo "Updating kubeconfig..."
                     whoami
-                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
+                    sudo aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
                     echo "Verifying Kubernetes access..."
                     kubectl config current-context || { echo "Kubernetes authentication failed"; exit 1; }
                     kubectl get nodes || { echo "Failed to retrieve nodes"; exit 1; }
