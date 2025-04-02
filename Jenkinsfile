@@ -6,6 +6,8 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
         KUBE_CONFIG = credentials('kubeconfig')  // Store kubeconfig in Jenkins credentials
+        AWS_ACCESS_KEY_ID= 'AKIASE5KRMRABB57BCPX'
+        AWS_SECRET_ACCESS_KEY= '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'
     }
 
     stages {
@@ -41,10 +43,15 @@ pipeline {
 
         stage('Deploy to EKS') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
+                                string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                                string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh '''
-                    export KUBECONFIG=/tmp/kubeconfig  # Use a writable location
+                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                    export KUBECONFIG=/tmp/kubeconfig
                     aws eks update-kubeconfig --region us-east-1 --name flask-cluster --kubeconfig /tmp/kubeconfig
+                    aws sts get-caller-identity  # Check if AWS credentials are working
                     kubectl get nodes
                     kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
                     kubectl rollout restart deployment flask -n default
@@ -72,5 +79,6 @@ pipeline {
         // }
     }
 }
+
 
 
