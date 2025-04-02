@@ -5,9 +5,6 @@ pipeline {
         IMAGE_NAME = 'flask-app'
         AWS_REGION = 'us-east-1'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
-        KUBE_CONFIG = credentials('kubeconfig')  // Store kubeconfig in Jenkins credentials
-        AWS_ACCESS_KEY_ID= 
-        AWS_SECRET_ACCESS_KEY= 
     }
 
     stages {
@@ -23,14 +20,6 @@ pipeline {
             }
         }
 
-        // stage('Login to Docker Hub') {
-        //     steps {
-        //         withCredentials([string(credentialsId: 'docker-hub-id', variable: 'DOCKER_PASS')]) {
-        //             sh 'echo $DOCKER_PASS | docker login -u sharmaaakash170 --password-stdin'
-        //         }
-        //     }
-        // }
-        
         stage('Push to ECR') {
             steps {
                 sh '''
@@ -43,22 +32,11 @@ pipeline {
 
         stage('Deploy to EKS') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
-                                string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-                                string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')]) {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
-                                string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-                                string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')]) {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
-                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                    export KUBECONFIG=/tmp/kubeconfig
-                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                     export KUBECONFIG=/tmp/kubeconfig
                     aws eks update-kubeconfig --region us-east-1 --name flask-cluster --kubeconfig /tmp/kubeconfig
-                    aws sts get-caller-identity  # Check if AWS credentials are working
-                    aws sts get-caller-identity  # Check if AWS credentials are working
+
                     kubectl get nodes
                     kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
                     kubectl rollout restart deployment flask -n default
@@ -66,26 +44,5 @@ pipeline {
                 }
             }
         }
-
-        // stage('Push to Docker Hub') {
-        //     steps {
-        //         sh '''
-        //         docker tag $IMAGE_NAME $IMAGE_NAME:latest
-        //         docker push $IMAGE_NAME:latest
-        //         '''
-        //     }
-        // }
-
-        // stage('Deploy to Kubernetes') {
-        //     steps {
-        //         withKubeConfig([credentialsId: 'kubeconfig-id']) {
-        //             sh 'kubectl apply -f flask-app-deployment.yml --validate=false'
-        //             sh 'kubectl apply -f flask-app-service.yml --validate=false'
-        //         }
-        //     }
-        // }
     }
 }
-
-
-
