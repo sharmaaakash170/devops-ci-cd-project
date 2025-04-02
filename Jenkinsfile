@@ -43,14 +43,14 @@ pipeline {
 
         stage('Deploy to EKS') {
             steps {
-                sh '''
-                kubectl get nodes
-                kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
-                kubectl rollout restart deployment flask -n default
-                '''
+                    sh '''
+                    kubectl get nodes
+                    kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
+                    kubectl rollout restart deployment flask -n default
+                    '''
+                }
             }
         }
-    }
 
         // stage('Push to Docker Hub') {
         //     steps {
