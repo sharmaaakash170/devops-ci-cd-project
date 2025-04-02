@@ -5,6 +5,7 @@ pipeline {
         IMAGE_NAME = 'flask-app'
         AWS_REGION = 'us-east-1'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
@@ -24,7 +25,7 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-                docker tag $IMAGE_NAME:latest $ECR_REPO:latest
+                docker tag flask-app:latest $ECR_REPO:latest
                 docker push $ECR_REPO:latest
                 '''
             }
@@ -32,20 +33,11 @@ pipeline {
 
         stage('Deploy to EKS') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh '''
-                    echo "Updating kubeconfig..."
-                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
-
-                    echo "Verifying Kubernetes access..."
-                    kubectl config current-context || { echo "Kubernetes authentication failed"; exit 1; }
-                    kubectl get nodes || { echo "Failed to retrieve nodes"; exit 1; }
-
-                    echo "Updating deployment..."
-                    kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
-                    kubectl rollout restart deployment flask -n default
-                    '''
-                }
+                sh '''
+                kubectl get nodes
+                kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
+                kubectl rollout restart deployment flask -n default
+                '''
             }
         }
     }
