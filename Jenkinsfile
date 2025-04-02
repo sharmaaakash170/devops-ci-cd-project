@@ -5,7 +5,9 @@ pipeline {
         IMAGE_NAME = 'flask-app'
         AWS_REGION = 'us-east-1'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
-        KUBECONFIG = '/var/lib/jenkins/.kube/config'
+        KUBE_CONFIG = credentials('kubeconfig')  // Store kubeconfig in Jenkins credentials
+        AWS_ACCESS_KEY_ID= 
+        AWS_SECRET_ACCESS_KEY= 
     }
 
     stages {
@@ -21,6 +23,14 @@ pipeline {
             }
         }
 
+        // stage('Login to Docker Hub') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'docker-hub-id', variable: 'DOCKER_PASS')]) {
+        //             sh 'echo $DOCKER_PASS | docker login -u sharmaaakash170 --password-stdin'
+        //         }
+        //     }
+        // }
+        
         stage('Push to ECR') {
             steps {
                 sh '''
@@ -41,4 +51,26 @@ pipeline {
             }
         }
     }
+
+        // stage('Push to Docker Hub') {
+        //     steps {
+        //         sh '''
+        //         docker tag $IMAGE_NAME $IMAGE_NAME:latest
+        //         docker push $IMAGE_NAME:latest
+        //         '''
+        //     }
+        // }
+
+        // stage('Deploy to Kubernetes') {
+        //     steps {
+        //         withKubeConfig([credentialsId: 'kubeconfig-id']) {
+        //             sh 'kubectl apply -f flask-app-deployment.yml --validate=false'
+        //             sh 'kubectl apply -f flask-app-service.yml --validate=false'
+        //         }
+        //     }
+        // }
+    }
 }
+
+
+
