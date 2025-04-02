@@ -35,7 +35,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
                     echo "Updating kubeconfig..."
-                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
+                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig /home/ubuntu/.kube/config
 
                     echo "Verifying Kubernetes access..."
                     kubectl config current-context || { echo "Kubernetes authentication failed"; exit 1; }
