@@ -35,6 +35,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
                     echo "Updating kubeconfig..."
+                    whoami
                     aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig /home/ubuntu/.kube/config
 
                     echo "Verifying Kubernetes access..."
