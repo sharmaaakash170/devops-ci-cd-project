@@ -24,7 +24,7 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-                docker tag flask-app:latest $ECR_REPO:latest
+                docker tag $IMAGE_NAME:latest $ECR_REPO:latest
                 docker push $ECR_REPO:latest
                 '''
             }
@@ -34,10 +34,14 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
-                    export KUBECONFIG=/tmp/kubeconfig
-                    aws eks update-kubeconfig --region us-east-1 --name flask-cluster --kubeconfig /tmp/kubeconfig
+                    echo "Updating kubeconfig..."
+                    aws eks update-kubeconfig --region $AWS_REGION --name flask-cluster --kubeconfig $KUBECONFIG
 
-                    kubectl get nodes
+                    echo "Verifying Kubernetes access..."
+                    kubectl config current-context || { echo "Kubernetes authentication failed"; exit 1; }
+                    kubectl get nodes || { echo "Failed to retrieve nodes"; exit 1; }
+
+                    echo "Updating deployment..."
                     kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
                     kubectl rollout restart deployment flask -n default
                     '''
