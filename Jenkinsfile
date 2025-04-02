@@ -6,8 +6,6 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
         KUBE_CONFIG = credentials('kubeconfig')  // Store kubeconfig in Jenkins credentials
-        AWS_ACCESS_KEY_ID= 
-        AWS_SECRET_ACCESS_KEY= 
     }
 
     stages {
