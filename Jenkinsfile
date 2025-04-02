@@ -43,8 +43,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
-                    export KUBECONFIG=$KUBECONFIG
-                    aws eks update-kubeconfig --region us-east-1 --name flask-cluster
+                    export KUBECONFIG=/tmp/kubeconfig  # Use a writable location
+                    aws eks update-kubeconfig --region us-east-1 --name flask-cluster --kubeconfig /tmp/kubeconfig
                     kubectl get nodes
                     kubectl set image deployment/flask flask-app=$ECR_REPO:latest --namespace default
                     kubectl rollout restart deployment flask -n default
