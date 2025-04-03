@@ -32,12 +32,8 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
-                    /*
-                    // kubectl apply -f flask-app-deployment.yml || echo "Deployment already exists"
-                    // kubectl apply -f flask-app-service.yml || echo "Service already exists"
-                    // kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest
-                    // kubectl rollout restart deployment flask-app
-                    */
+                    ls -l $KUBECONFIG
+                    kubectl get nodes
                     helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH --namespace default --set image.repository=$ECR_REPO --set image.tag=$TAG
                     '''
                 }
@@ -45,3 +41,10 @@ pipeline {
         }
     }
 }
+
+                    /*
+                    kubectl apply -f flask-app-deployment.yml || echo "Deployment already exists"
+                    kubectl apply -f flask-app-service.yml || echo "Service already exists"
+                    kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest
+                    kubectl rollout restart deployment flask-app
+                    */
