@@ -32,8 +32,8 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
-                    ls -l $KUBECONFIG
-                    kubectl get nodes
+                    helm repo add stable https://charts.helm.sh/stable
+                    helm repo update
                     helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH --namespace default --set image.repository=$ECR_REPO --set image.tag=$TAG
                     '''
                 }
