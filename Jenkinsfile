@@ -7,7 +7,7 @@ pipeline {
         TAG = 'latest'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
         HELM_RELEASE = 'flask-app-release'
-        HELM_CHART_PATH = 'flask-app-chart'
+        HELM_CHART_PATH = 'flask-app'
     }
 
     stages {
