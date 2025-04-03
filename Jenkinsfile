@@ -4,7 +4,10 @@ pipeline {
     environment {
         IMAGE_NAME = 'flask-app'
         AWS_REGION = 'us-east-1'
+        TAG = 'latest'
         ECR_REPO = '147997156416.dkr.ecr.us-east-1.amazonaws.com/flask-app'
+        HELM_RELEASE = 'flask-app-release'
+        HELM_CHART_PATH = 'flask-app-chart'
     }
 
     stages {
@@ -30,12 +33,12 @@ pipeline {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
                     
-                    kubectl apply -f flask-app-deployment.yml || echo "Deployment already exists"
+                    // kubectl apply -f flask-app-deployment.yml || echo "Deployment already exists"
+                    // kubectl apply -f flask-app-service.yml || echo "Service already exists"
+                    // kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest
+                    // kubectl rollout restart deployment flask-app
                     
-                    kubectl apply -f flask-app-service.yml || echo "Service already exists"
-
-                    kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest
-                    kubectl rollout restart deployment flask-app
+                    helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH --namespace default --set image.repository=$ECR_REPO --set image.tag=$TAG
                     '''
                 }
             }
