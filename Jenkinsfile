@@ -30,7 +30,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
-                    kubectl set image deployment/flask flask-app=$ECR_REPO:latest
+                    kubectl set image deployment/flask-app flask-app=$ECR_REPO:latest
                     kubectl rollout restart deployment flask-app
                     '''
                 }
