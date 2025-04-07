@@ -49,6 +49,7 @@ phases:
       - echo "Writing image definitions..."
       - printf '[{"name":"flask-app","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
       - echo "Deploying to EKS using Helm..."
+      - aws sts get-caller-identity
       - mkdir -p ~/.kube
       - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME --kubeconfig ~/.kube/config
       - export KUBECONFIG=/root/.kube/config
