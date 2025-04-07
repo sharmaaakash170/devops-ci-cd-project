@@ -70,6 +70,11 @@ resource "aws_iam_role_policy_attachment" "codebuild_ecr_power_user" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
+resource "aws_iam_role_policy_attachment" "codebuild_eks_access" {
+  role       = aws_iam_role.codebuild_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
 resource "aws_codebuild_project" "flask_app" {
   name         = "${var.project_name}-codebuild"
   description  = "Build project for Flask app"
