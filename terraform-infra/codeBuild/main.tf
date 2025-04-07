@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "codebuild_service_role" {
   name = "codebuild-service-role"
 
@@ -14,6 +16,27 @@ resource "aws_iam_role" "codebuild_service_role" {
     ]
   })
 }
+
+resource "aws_iam_role_policy" "ssm_access" {
+  name = "ssm-get-parameter-access"
+  role = aws_iam_role.codebuild_service_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ],
+        Resource = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/github_token"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy" "codebuild_full_access_policy" {
   name = "codebuild-full-access-policy"
   role = aws_iam_role.codebuild_service_role.id
