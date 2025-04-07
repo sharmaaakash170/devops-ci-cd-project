@@ -9,23 +9,25 @@ env:
     CLUSTER_NAME: "flask-eks-cluster"
 
 phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo "Installing Helm..."
+      - curl -fsSL -o helm.tar.gz https://get.helm.sh/helm-v3.13.3-linux-amd64.tar.gz
+      - tar -zxvf helm.tar.gz
+      - mv linux-amd64/helm /usr/local/bin/helm
+      - helm version
+
   pre_build:
     commands:
-      - echo "Logging in to Amazon ECR..."
-      - echo "AWS CLI version:"
-      - aws --version 
-      - echo "Docker version:"
-      - docker --version 
       - echo "Logging into ECR..."
-      - AWS_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
-      - echo "Logging into ECR using Docker..."
-      - echo $AWS_PASSWORD | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - echo "Getting commit hash..."
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo "Commit hash:$COMMIT_HASH"
-      - echo "Image new tag will be:$IMAGE_TAG"
-      - echo "Setting up kubeconfig"
-      - echo "Waiting for EKS cluster to become ACTIVE..."
+      - echo "Commit hash: $COMMIT_HASH"
+      - echo "Image tag: $IMAGE_TAG"
+      - echo "Checking EKS cluster status..."
       - |
         while true; do
           status=$(aws eks describe-cluster --region $AWS_REGION --name $CLUSTER_NAME --query "cluster.status" --output text)
@@ -41,26 +43,22 @@ phases:
 
   build:
     commands:
-      - echo Building the Docker image...
+      - echo "Building Docker image..."
       - docker build -t $ECR_REPO:$IMAGE_TAG .
       - docker tag $ECR_REPO:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo Pushing the Docker image to ECR...
+      - echo "Pushing Docker image to ECR..."
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-      - echo Writing image definitions to imagedefinitions.json...
+      - echo "Writing image definitions..."
       - printf '[{"name":"flask-app","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
-      - echo Deploy to EKS using Terraform + Helm 
-      - echo "Installing Terraform..."
-      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip -o terraform.zip
-      - unzip terraform.zip
-      - mv terraform /usr/local/bin/
-      - terraform -version
-      - ls -lrt
-      - cd terraform-infra/
-      - terraform init 
-      - terraform apply --auto-approve
+      - echo "Deploying to EKS using Helm..."
+      - helm upgrade --install flask-app ./helm-charts \
+          --namespace flask \
+          --create-namespace \
+          --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO \
+          --set image.tag=$IMAGE_TAG
 
 artifacts:
   files:
