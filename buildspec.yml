@@ -60,6 +60,10 @@ phases:
       - helm list -n flask
       - kubectl get pods -n flask
 
+      - echo "Running observability setup with Ansible..."
+      - cd ansible/observability
+      - ansible-playbook -i inventory.yaml playbook.yml
+
 artifacts:
   files:
     - imagedefinitions.json

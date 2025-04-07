@@ -11,7 +11,7 @@ def hello():
     return "Hey, it is deployed succesfully"
 
 @app.route("/money")
-def hello():
+def money():
     return "Hey, it will billionaire$$$$"
 
 if __name__ == "__main__":
