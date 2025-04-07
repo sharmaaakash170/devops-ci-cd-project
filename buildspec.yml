@@ -1,0 +1,47 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: "us-east-1"
+    AWS_ACCOUNT_ID: "147997156416"
+    ECR_REPO: "flask-app"
+    IMAGE_TAG: "latest"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - echo "AWS CLI version:"
+      - aws --version 
+      - echo "Docker version:"
+      - docker --version 
+      - echo "Logging into ECR..."
+      - AWS_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
+      - echo "Logging into ECR using Docker..."
+      - echo $AWS_PASSWORD | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - echo "Getting commit hash..."
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo "Commit hash:$COMMIT_HASH"
+      - echo "Image new tag will be:$IMAGE_TAG"
+
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $ECR_REPO:$IMAGE_TAG .
+      - docker tag $ECR_REPO:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo Pushing the Docker image to ECR...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+      - echo Writing image definitions to imagedefinitions.json...
+      - printf '[{"name":"flask-app","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > imagedefinitions.
+      - echo Deploy to EKS using Terraform + Helm 
+      - ls -lrt
+      - cd terraform-infra/
+      - terraform init 
+      - terraform apply --auto-approve
+
+artifacts:
+  files:
+    - imagedefinitions.json
