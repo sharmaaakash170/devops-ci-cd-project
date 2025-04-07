@@ -59,10 +59,12 @@ phases:
       - helm upgrade --install flask-app ./flask-app --namespace flask --create-namespace --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO --set image.tag=$IMAGE_TAG --debug
       - helm list -n flask
       - kubectl get pods -n flask
-
+      - echo "Installing Ansible..."
+      - pip install ansible boto3 botocore
+      - ansible --version
       - echo "Running observability setup with Ansible..."
       - cd ansible/observability
-      - ansible-playbook -i inventory.yaml playbook.yml
+      - ansible-playbook -i inventory.yml playbook.yml
 
 artifacts:
   files:
