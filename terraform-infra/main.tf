@@ -69,7 +69,8 @@ module "codebuild" {
   source             = "./codeBuild"
   project_name       = "flask-app"
   ecr_repo_url       = module.ecr.repository_url
-  region             = var.aws_region
+  aws_account_id = "891062950211"
+  aws_region = var.aws_region
 }
 
 module "codepipeline" {

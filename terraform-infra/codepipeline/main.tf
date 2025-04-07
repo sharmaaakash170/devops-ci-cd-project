@@ -1,5 +1,17 @@
+data "aws_caller_identity" "current" {}
+
+resource "random_id" "bucket_id" {
+  byte_length = 4
+}
+
+data "aws_ssm_parameter" "github_token" {   
+  name = "github_token"
+  with_decryption = true
+}
+
+
 resource "aws_s3_bucket" "codepipeline_bucket" {
-  bucket = "codepipeline-${var.region}-${var.project_name}-artifact"
+  bucket        = "codepipeline-${var.region}-${var.project_name}-${data.aws_caller_identity.current.account_id}-${random_id.bucket_id.hex}"
   force_destroy = true
 
   tags = {
@@ -31,7 +43,7 @@ resource "aws_codepipeline" "flask_pipeline" {
         Owner      = var.github_owner
         Repo       = var.github_repo
         Branch     = var.github_branch
-        OAuthToken = var.github_oauth_token
+        OAuthToken =  data.aws_ssm_parameter.github_token.value
       }
     }
   }
@@ -64,12 +76,11 @@ resource "aws_iam_role" "codepipeline_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "codepipeline.amazonaws.com"
       }
-      Effect = "Allow"
-      Sid    = ""
+      Action = "sts:AssumeRole"
     }]
   })
 }
@@ -104,19 +115,21 @@ resource "aws_iam_role_policy" "codepipeline_s3_access" {
   role = aws_iam_role.codepipeline_role.name
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow"
+        Effect = "Allow",
         Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:PutObjectAcl",
-          "s3:GetBucketLocation"
-        ]
+        #   "s3:GetObject",
+        #   "s3:PutObject",
+        #   "s3:PutObjectAcl",
+        #   "s3:GetBucketLocation"
+            "s3:*"
+        ],
         Resource = [
-          "arn:aws:s3:::codepipeline-${var.region}-${var.project_name}-artifact",
-          "arn:aws:s3:::codepipeline-${var.region}-${var.project_name}-artifact/*"
+          "*",
+        #   "${aws_s3_bucket.codepipeline_bucket.arn}",
+        #   "${aws_s3_bucket.codepipeline_bucket.arn}/*"
         ]
       }
     ]
@@ -128,17 +141,19 @@ resource "aws_iam_role_policy" "codebuild_logging" {
   role = aws_iam_role.codepipeline_role.name
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow"
+        Effect = "Allow",
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
+        #   "logs:CreateLogGroup",
+        #   "logs:CreateLogStream",
+        #   "logs:PutLogEvents"
+          "logs:*"
+        ],
         Resource = [
-          "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/*"
+          "*"
+        #   "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/*"
         ]
       }
     ]
@@ -150,15 +165,17 @@ resource "aws_iam_role_policy" "codepipeline_codebuild_access" {
   role = aws_iam_role.codepipeline_role.name
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow"
+        Effect = "Allow",
         Action = [
-          "codebuild:BatchGetBuilds",
-          "codebuild:StartBuild"
-        ]
-        Resource = "arn:aws:codebuild:${var.region}:${data.aws_caller_identity.current.account_id}:project/${var.project_name}-codebuild"
+        #   "codebuild:BatchGetBuilds",
+        #   "codebuild:StartBuild",
+          "codebuild:*"
+        ],
+        Resource = "*"
+        # Resource = "arn:aws:codebuild:${var.region}:${data.aws_caller_identity.current.account_id}:project/${var.project_name}-codebuild"
       }
     ]
   })
@@ -174,23 +191,10 @@ resource "aws_iam_role_policy" "codebuild_ecr_access" {
       {
         Effect = "Allow",
         Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:GetRepositoryPolicy",
-          "ecr:DescribeRepositories",
-          "ecr:ListImages",
-          "ecr:DescribeImages",
-          "ecr:BatchGetImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
-          "ecr:PutImage"
+          "ecr:*"
         ],
         Resource = "*"
       }
     ]
   })
 }
-
-data "aws_caller_identity" "current" {}

@@ -1,4 +1,4 @@
 variable "project_name" {}
-# variable "codebuild_role_arn" {}
 variable "ecr_repo_url" {}
-variable "region" {}
+variable "aws_account_id" {}
+variable "aws_region" {}

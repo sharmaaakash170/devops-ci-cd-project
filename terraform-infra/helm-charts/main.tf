@@ -1,6 +1,6 @@
 provider "helm" {
   kubernetes {
-    config_path = "C:/Users/Lenovo/.kube/config"
+    config_path = "~/.kube/config"
   }
 }
 
