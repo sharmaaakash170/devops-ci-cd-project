@@ -49,11 +49,7 @@ phases:
       - echo "Writing image definitions..."
       - printf '[{"name":"flask-app","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
       - echo "Deploying to EKS using Helm..."
-      - helm upgrade --install flask-app ./helm-charts \
-          --namespace flask \
-          --create-namespace \
-          --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO \
-          --set image.tag=$IMAGE_TAG
+      - helm upgrade --install flask-app ./flask-app --namespace flask --create-namespace --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO --set image.tag=$IMAGE_TAG
 
 artifacts:
   files:
