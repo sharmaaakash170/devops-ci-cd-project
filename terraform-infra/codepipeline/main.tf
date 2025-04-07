@@ -9,6 +9,23 @@ data "aws_ssm_parameter" "github_token" {
   with_decryption = true
 }
 
+resource "aws_codepipeline_webhook" "github_webhook" {
+  name            = "github-webhook"
+  target_pipeline = aws_codepipeline.flask_pipeline.name
+  target_action   = "Source"
+  authentication  = "GITHUB_HMAC"
+
+  authentication_configuration {
+    secret_token = data.aws_ssm_parameter.github_token.value
+  }
+
+  filter {
+    json_path    = "$.ref"
+    match_equals = "refs/heads/main"
+  }
+}
+
+
 
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket        = "codepipeline-${var.region}-${var.project_name}-${data.aws_caller_identity.current.account_id}-${random_id.bucket_id.hex}"
@@ -198,3 +215,4 @@ resource "aws_iam_role_policy" "codebuild_ecr_access" {
     ]
   })
 }
+

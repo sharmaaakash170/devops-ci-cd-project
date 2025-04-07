@@ -35,12 +35,12 @@ module "security_group" {
   vpc_id = module.vpc.vpc_id
 }
 
-module "ec2" {
-  source = "./ec2"
-  subnet_id = module.subnet.public_subnet_ids[0] 
-  vpc_security_group_ids = [module.security_group.jenkins_sg_id]
-  eks_admin_profile = aws_iam_instance_profile.eks_admin_profile.name
-}
+# module "ec2" {
+#   source = "./ec2"
+#   subnet_id = module.subnet.public_subnet_ids[0] 
+#   vpc_security_group_ids = [module.security_group.jenkins_sg_id]
+#   eks_admin_profile = aws_iam_instance_profile.eks_admin_profile.name
+# }
 
 module "eks_cluster" {
   source = "./eks-cluster"
