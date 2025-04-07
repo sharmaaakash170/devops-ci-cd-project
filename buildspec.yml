@@ -39,12 +39,6 @@ phases:
       - echo "Cluster is ACTIVE. Updating kubeconfig..."
       - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
 
-      - echo "Installing Terraform..."
-      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip -o terraform.zip
-      - unzip terraform.zip
-      - mv terraform /usr/local/bin/
-      - terraform -version
-
   build:
     commands:
       - echo Building the Docker image...
@@ -58,6 +52,11 @@ phases:
       - echo Writing image definitions to imagedefinitions.json...
       - printf '[{"name":"flask-app","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
       - echo Deploy to EKS using Terraform + Helm 
+      - echo "Installing Terraform..."
+      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip -o terraform.zip
+      - unzip terraform.zip
+      - mv terraform /usr/local/bin/
+      - terraform -version
       - ls -lrt
       - cd terraform-infra/
       - terraform init 
