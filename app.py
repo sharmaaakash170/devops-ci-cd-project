@@ -10,6 +10,10 @@ def home():
 def hello():
     return "Hey, it is deployed succesfully"
 
+@app.route("/money")
+def hello():
+    return "Hey, it will billionaire$$$$"
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
     
