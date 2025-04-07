@@ -24,7 +24,7 @@ phases:
       - echo "Commit hash:$COMMIT_HASH"
       - echo "Image new tag will be:$IMAGE_TAG"
       - echo "Setting up kubeconfig"
-      - aws eks update-kubeconfig --region us-east-1 --name your-cluster-name
+      - aws eks update-kubeconfig --region us-east-1 --name flask-eks-cluster
 
       - echo "Installing Terraform..."
       - curl -fsSL https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip -o terraform.zip
