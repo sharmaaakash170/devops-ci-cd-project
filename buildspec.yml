@@ -49,6 +49,7 @@ phases:
       - echo "Writing image definitions..."
       - printf '[{"name":"flask-app","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
       - echo "Deploying to EKS using Helm..."
+      - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
       - helm upgrade --install flask-app ./flask-app --namespace flask --create-namespace --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO --set image.tag=$IMAGE_TAG
       - echo "Verifying Helm Release..."
       - helm list -n flask
