@@ -29,7 +29,7 @@ devops-ci-cd-project/
 │
 ├── buildspec.yml                # CodeBuild instructions
 │
-├── helm-chart/
+├── flask-app/
 │   ├── Chart.yaml
 │   └── templates/
 │       └── deployment.yaml
