@@ -25,8 +25,6 @@ resource "aws_codepipeline_webhook" "github_webhook" {
   }
 }
 
-
-
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket        = "codepipeline-${var.region}-${var.project_name}-${data.aws_caller_identity.current.account_id}-${random_id.bucket_id.hex}"
   force_destroy = true

@@ -17,3 +17,11 @@ output "cluster_ca_certificate" {
 output "token" {
   value = data.aws_eks_cluster_auth.this.token
 }
+
+output "cluster_id" {
+  value = data.aws_eks_cluster.this.id
+}
+
+output "cluster_id_2" {
+  value = data.aws_eks_cluster.this.id
+}
