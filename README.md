@@ -100,7 +100,7 @@ devops-ci-cd-project/
 
 4. **Deploy Using Helm**
    ```bash
-   helm upgrade --install flask-app ./helm-chart
+   helm upgrade --install flask-app ./flask-app
    ```
 
 5. **Verify Kubernetes Deployment**
