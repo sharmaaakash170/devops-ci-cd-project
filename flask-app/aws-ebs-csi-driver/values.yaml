@@ -1,0 +1,9 @@
+controller:
+  serviceAccount:
+    create: false
+    name: ebs-csi-controller-sa
+
+node:
+  serviceAccount:
+    create: false
+    name: ebs-csi-controller-sa
