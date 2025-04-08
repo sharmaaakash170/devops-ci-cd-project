@@ -54,8 +54,6 @@ phases:
       - chmod 600 ~/.kube/config
       - aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME --kubeconfig ~/.kube/config
       - export KUBECONFIG=/root/.kube/config
-      - ls -la 
-      - kubectl apply -f aws-auth.yaml
       - kubectl get nodes
       - echo "Deploying with Helm..."
       - helm upgrade --install flask-app ./flask-app --namespace flask --create-namespace --set image.repository=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO --set image.tag=$IMAGE_TAG --debug
