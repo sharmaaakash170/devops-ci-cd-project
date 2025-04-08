@@ -1,0 +1,10 @@
+- name: Add Fluent Bit Helm repo
+  shell: helm repo add fluent https://fluent.github.io/helm-charts
+
+- name: Update Helm repos
+  shell: helm repo update
+
+- name: Deploy Fluent Bit
+  shell: |
+    helm upgrade --install fluent-bit fluent/fluent-bit \
+      --namespace monitoring --create-namespace

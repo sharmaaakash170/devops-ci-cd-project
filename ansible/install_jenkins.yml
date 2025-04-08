@@ -1,0 +1,207 @@
+---
+- name: Install Jenkins on ec2
+  hosts: jenkins 
+  become: true
+  
+  vars:
+    eks_cluster_name: flask-eks-cluster
+
+  tasks:
+    - name: Update all package
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Install Java (Amazon Corretto 17)
+      yum:
+        name: java-17-amazon-corretto
+        state: present
+
+    - name: Add Jenkins repo
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+
+    - name: Import jenkins key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+    - name: Install Jenkins 
+      yum: 
+        name: jenkins 
+        state: present
+
+    - name: Start Jenkins 
+      service:
+        name: jenkins 
+        state: started
+        enabled: yes 
+
+    - name: Install Git
+      yum: 
+        name: git 
+        state: present
+
+    - name: Install Docker
+      yum:
+        name: docker 
+        state: present
+
+    - name: Start and enable docker
+      service:
+        name: docker
+        state: started
+        enabled: yes 
+
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user 
+        groups: docker 
+        append: yes
+
+    - name: Add jenkins user to docker group
+      user: 
+        name: jenkins 
+        groups: docker
+        append: yes
+
+    - name: Download Helm install script
+      get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: /tmp/get_helm.sh
+        mode: '0755'
+
+    - name: Run Helm install script
+      ansible.builtin.shell: /tmp/get_helm.sh
+      environment:
+        PATH: "/usr/local/bin:/usr/bin:/bin"
+
+
+    - name: Ensure Helm is in PATH via symlink
+      file:
+        src: /usr/local/bin/helm
+        dest: /usr/bin/helm
+        state: link
+
+    - name: Verify Helm installation
+      command: helm version
+      register: helm_check
+
+    - debug:
+        var: helm_check.stdout
+        
+    - name: Download kubectl (corrected version URL)
+      ansible.builtin.get_url:
+        url: "https://s3.us-west-2.amazonaws.com/amazon-eks/1.32.0/2024-12-20/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+
+    - name: Ensure kubectl is in PATH via symlink
+      file:
+        src: /usr/local/bin/kubectl
+        dest: /usr/bin/kubectl
+        state: link
+
+    - name: Verify kubectl version
+      shell: kubectl version --client
+      register: kubectl_version
+
+    - debug:
+        var: kubectl_version.stdout
+
+    - name: Install unzip (required for AWS CLI install)
+      yum:
+        name: unzip
+        state: present
+
+    - name: Download AWS CLI installer
+      get_url:
+        url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+        dest: "/tmp/awscliv2.zip"
+
+    - name: Unzip AWS CLI installer
+      unarchive:
+        src: "/tmp/awscliv2.zip"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install AWS CLI
+      shell: "/tmp/aws/install --update"
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Verify AWS CLI version
+      shell: aws --version
+
+    - name: Create .kube directory for root
+      file:
+        path: /root/.kube
+        state: directory
+        mode: '0700'
+
+    - name: Update kubeconfig for EKS cluster
+      shell: >
+        aws eks update-kubeconfig
+        --region us-east-1
+        --name {{ eks_cluster_name }}
+      environment:
+        PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+
+    - name: Create .kube directory for Jenkins
+      file:
+        path: /var/lib/jenkins/.kube
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0755'
+
+    - name: Copy kubeconfig to Jenkins home
+      copy:
+        src: /root/.kube/config
+        dest: /var/lib/jenkins/.kube/config
+        remote_src: yes
+        owner: jenkins
+        group: jenkins
+        mode: '0644'
+
+    - name: Set platform variable for eksctl
+      set_fact:
+        eksctl_platform: "Linux_amd64"
+
+    - name: Download eksctl binary
+      get_url:
+        url: "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_{{ eksctl_platform }}.tar.gz"
+        dest: "/tmp/eksctl.tar.gz"
+        mode: '0755'
+
+    - name: Extract eksctl
+      unarchive:
+        src: "/tmp/eksctl.tar.gz"
+        dest: "/usr/local/bin/"
+        remote_src: yes
+
+    - name: Ensure eksctl binary is executable
+      file:
+        path: "/usr/local/bin/eksctl"
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Download latest kubectl (hardcoded working version for EKS)
+      get_url:
+        url: "https://s3.us-west-2.amazonaws.com/amazon-eks/1.32.0/2024-12-20/bin/linux/amd64/kubectl"
+        dest: "/usr/local/bin/kubectl"
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Ensure kubectl binary is executable
+      file:
+        path: "/usr/local/bin/kubectl"
+        mode: '0755'
+        owner: root
+        group: root
+
+    

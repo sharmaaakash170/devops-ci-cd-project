@@ -1,5 +1,5 @@
 resource "aws_eip" "flask_eip" {
-  #  instance = aws_instance.flask.id
+  domain = "vpc"
 }
 
 resource "aws_nat_gateway" "flask_nat_gw" {

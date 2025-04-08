@@ -1,0 +1,12 @@
+- name: Add Grafana Helm repo
+  shell: helm repo add grafana https://grafana.github.io/helm-charts
+
+- name: Update Helm repos
+  shell: helm repo update
+
+- name: Deploy Grafana
+  shell: |
+    helm upgrade --install grafana grafana/grafana \
+      --namespace monitoring --create-namespace \
+      --set adminPassword='admin' \
+      --set service.type=LoadBalancer

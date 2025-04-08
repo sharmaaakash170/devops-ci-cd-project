@@ -35,11 +35,16 @@ module "security_group" {
   vpc_id = module.vpc.vpc_id
 }
 
+# module "ec2" {
+#   source = "./ec2"
+#   subnet_id = module.subnet.public_subnet_ids[0] 
+#   vpc_security_group_ids = [module.security_group.jenkins_sg_id]
+#   eks_admin_profile = aws_iam_instance_profile.eks_admin_profile.name
+# }
+
 module "eks_cluster" {
   source = "./eks-cluster"
   private_subnet_ids = module.subnet.private_subnet_ids
-  cluster_name = "flask-eks-cluster"
-  region = var.aws_region
 }
 
 module "eks_node_cluster" {
@@ -86,6 +91,9 @@ module "helm_charts" {
   namespace    = "flask"
   chart_path   = "../flask-app/"       
   values_file  = "../flask-app/values.yaml"
-  vpc_id = module.vpc.vpc_id
-  subnet_cidr_blocks = module.subnet.public_subnet_ids[0] 
+}
+
+module "ebs_csi_driver" {
+  source       = "./ebs-csi-driver"
+  cluster_name = module.eks_cluster.cluster_name
 }
