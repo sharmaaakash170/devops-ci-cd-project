@@ -62,15 +62,6 @@ autoscaling:
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
 
-volumes:
-  - name: prometheus-server-storage
-    persistentVolumeClaim:
-      claimName: prometheus-server-pvc
-
-volumeMounts:
-  - name: prometheus-server-storage
-    mountPath: /data
-
 nodeSelector: {}
 tolerations: []
 affinity: {}

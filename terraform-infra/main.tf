@@ -89,7 +89,11 @@ module "helm_charts" {
   source       = "./helm-charts"
   app_name     = "flask-app"
   namespace    = "flask"
-  chart_path   = "../flask-app/"       # Path to your chart
+  chart_path   = "../flask-app/"       
   values_file  = "../flask-app/values.yaml"
 }
 
+module "ebs_csi_driver" {
+  source       = "./ebs-csi-driver"
+  cluster_name = module.eks_cluster.cluster_name
+}
