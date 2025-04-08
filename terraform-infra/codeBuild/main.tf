@@ -37,29 +37,48 @@ resource "aws_iam_role_policy" "ssm_access" {
   })
 }
 
-resource "aws_iam_role_policy" "codebuild_full_access_policy" {
-  name = "codebuild-full-access-policy"
+resource "aws_iam_role_policy" "codebuild_eks_access" {
+  name = "codebuild-eks-access-policy"
   role = aws_iam_role.codebuild_service_role.id
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid: "Statement1",
-        Effect: "Allow",
-        Action: [
-          "ec2:*",
-          "codepipeline:*",
-          "eks:*",
-          "eks-auth:*",
-          "iam:*",
-          "s3:*",
-          "cloudwatch:*",
-          "codebuild:*",
-          "ecr:*",
-          "logs:*"
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters"
         ],
-        Resource: ["*"]
+        Resource = "arn:aws:eks:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster/*"
+      },
+      {
+        Effect = "Allow",
+        Action = "eks:AccessKubernetesApi",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "codebuild_base_policy" {
+  name = "codebuild-base-policy"
+  role = aws_iam_role.codebuild_service_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:*",
+          "logs:*",
+          "s3:*",
+          "codebuild:*",
+          "codepipeline:*",
+          "cloudwatch:*"
+        ],
+        Resource = "*"
       }
     ]
   })
@@ -68,11 +87,6 @@ resource "aws_iam_role_policy" "codebuild_full_access_policy" {
 resource "aws_iam_role_policy_attachment" "codebuild_ecr_power_user" {
   role       = aws_iam_role.codebuild_service_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
-}
-
-resource "aws_iam_role_policy_attachment" "codebuild_eks_access" {
-  role       = aws_iam_role.codebuild_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
 resource "aws_codebuild_project" "flask_app" {
