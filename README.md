@@ -79,8 +79,8 @@ kubectl apply -f aws-auth.yaml
 
 Below is a simple visual representation of the CI/CD pipeline:
 
-(![ChatGPT_Image_Apr_8_2025_10_26_07_PM](https://github.com/user-attachments/assets/496cbc08-3966-4bb2-b18f-c54bfc9e9a0b)
-)
+![ChatGPT_Image_Apr_8_2025_10_26_07_PM](https://github.com/user-attachments/assets/496cbc08-3966-4bb2-b18f-c54bfc9e9a0b)
+
 
 ---
 
