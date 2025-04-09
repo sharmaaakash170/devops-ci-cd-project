@@ -36,7 +36,7 @@ terraform-infra/
 │   ├── ecr/
 │   ├── codebuild/
 │   └── codepipeline/
-helm-chart/
+flask-app/
 ├── Chart.yaml
 ├── templates/
 │   └── deployment.yaml
@@ -53,8 +53,6 @@ aws-auth.yaml
 ## 🐍 Flask App Endpoints
 
 - `/` → "CiCd pipeline created successfully"
-- `/hello` → "Hey, it is deployed successfully"
-- `/money` → "Hey, it will billionaire$$$$"
 - `/time` → Returns current time
 
 ---
